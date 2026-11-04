@@ -1,0 +1,14 @@
+// Static-assets-only Worker that serves agenterrors.org.
+// The zone and the deploy token are declared in philtzjp/pulumi.
+// The custom domain is attached there as well, so no routes are declared here.
+{
+    "$schema": "https://unpkg.com/wrangler/config-schema.json",
+    "name": "philtzjp-agenterrors-shared",
+    "compatibility_date": "2026-11-01",
+    "workers_dev": false,
+    "assets": {
+        "directory": "./public",
+        "html_handling": "auto-trailing-slash",
+        "not_found_handling": "404-page",
+    },
+}

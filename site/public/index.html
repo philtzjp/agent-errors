@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Errors</title>
+<meta name="description" content="Machine-readable errors for AI agent harnesses, built on Problem Details (RFC 9457).">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+<header><a class="home" href="/">Agent Errors</a></header>
+
+<h1>Machine-readable errors for AI agent harnesses</h1>
+
+<p>An AI agent runs a language model inside a harness. The harness parses model output, calls tools, manages context, and enforces limits. When something fails in this layer, such as malformed structured output, an exceeded turn limit, or context overflow, each implementation reports it differently. Many of them classify upstream failures by matching message text.</p>
+
+<p>Agent Errors defines a single error object for these failures. It is built on <a href="https://www.rfc-editor.org/rfc/rfc9457">Problem Details (RFC 9457)</a>, carries a stable error code, and says whether the error is transient and whether the model can repair it. It also defines bindings to the Model Context Protocol and the Agent2Agent protocol.</p>
+
+<h2>Specification</h2>
+<ul>
+<li><a href="/draft/draft-ouchi-agent-harness-errors.html">Editor's copy of draft-ouchi-agent-harness-errors</a> (<a href="/draft/draft-ouchi-agent-harness-errors.txt">text</a>)</li>
+<li><a href="/problems/harness-error">Problem type <code>harness-error</code></a></li>
+<li><a href="/ext/a2a/v1">A2A extension <code>v1</code></a></li>
+</ul>
+
+<h2>Example</h2>
+<pre><code>{
+  "type": "https://agenterrors.org/problems/harness-error",
+  "title": "Output Schema Violation",
+  "code": "output.schema_violation",
+  "origin": "model",
+  "retryable": false,
+  "model_recoverable": true,
+  "model_feedback": "Field 'price' must be a number, got string.",
+  "location": { "turn": 5, "pointer": "/items/0/price" }
+}</code></pre>
+
+<h2>Participate</h2>
+<p>Work happens in the open on GitHub. Use <a href="https://github.com/philtzjp/agent-errors/issues">issues</a> for specific problems with the text, and <a href="https://github.com/philtzjp/agent-errors/discussions">discussions</a> for broader questions. Contributions are subject to the IETF Note Well; see <a href="https://github.com/philtzjp/agent-errors/blob/main/CONTRIBUTING.md">CONTRIBUTING</a>.</p>
+
+<p class="note">This is an individual Internet-Draft. It has no formal standing in the IETF and may change at any time.</p>
+
+<footer>agenterrors.org</footer>
+</main>
+</body>
+</html>

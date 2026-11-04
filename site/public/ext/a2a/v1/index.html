@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A2A extension v1 — Agent Errors</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+<header><a class="home" href="/">Agent Errors</a></header>
+
+<h1>A2A extension <code>v1</code></h1>
+
+<p>This URI identifies an Agent2Agent (A2A) protocol extension. An agent that declares it reports harness errors as <a href="/problems/harness-error">harness error objects</a>:</p>
+<pre><code>https://agenterrors.org/ext/a2a/v1</code></pre>
+
+<p class="note">This page summarizes the A2A binding in the <a href="/draft/draft-ouchi-agent-harness-errors.html">editor's copy of the draft</a>. If they differ, the draft is authoritative.</p>
+
+<h2>Declaring the extension</h2>
+<p>Declare the extension in the Agent Card with <code>required</code> set to <code>false</code>. Agents still report errors in the base A2A form, so clients that do not support the extension keep working.</p>
+<pre><code>"capabilities": {
+  "extensions": [
+    { "uri": "https://agenterrors.org/ext/a2a/v1", "required": false }
+  ]
+}</code></pre>
+
+<h2>Task failures</h2>
+<p>When a task ends because of a harness error, the status message carries a text part with the <code>detail</code> text and a data part with the harness error object. The task state depends on the code:</p>
+<table>
+<tr><th>Harness error code</th><th>Task state</th></tr>
+<tr><td><code>harness.cancelled</code></td><td><code>canceled</code></td></tr>
+<tr><td><code>policy.model_refusal</code>, <code>policy.guardrail_triggered</code>, <code>policy.content_filtered</code></td><td><code>rejected</code></td></tr>
+<tr><td>all other codes</td><td><code>failed</code></td></tr>
+</table>
+<p>Conditions that let the task continue, such as waiting for human approval or credentials, use <code>input-required</code> or <code>auth-required</code> and are not reported as harness errors.</p>
+
+<h2>Example</h2>
+<pre><code>{
+  "id": "task-123",
+  "status": {
+    "state": "failed",
+    "message": {
+      "role": "agent",
+      "parts": [
+        { "kind": "text", "text": "Stopped after reaching the 50-turn limit." },
+        { "kind": "data", "data": {
+            "type": "https://agenterrors.org/problems/harness-error",
+            "title": "Maximum Turns Exceeded",
+            "code": "loop.max_turns_exceeded",
+            "origin": "harness",
+            "retryable": false,
+            "limit": { "name": "turns", "value": 50, "observed": 50 }
+        } }
+      ]
+    }
+  }
+}</code></pre>
+
+<h2>Delegating agents</h2>
+<p>An agent that delegates to a remote agent reports the remote failure as <code>upstream.agent_failed</code> and places the received object in <code>causes</code>. Each agent wraps the received object instead of rewriting it, so the original code and origin stay visible at the outermost level.</p>
+
+<footer><a href="https://github.com/philtzjp/agent-errors">github.com/philtzjp/agent-errors</a></footer>
+</main>
+</body>
+</html>
