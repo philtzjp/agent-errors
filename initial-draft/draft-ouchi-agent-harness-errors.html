@@ -1,0 +1,3060 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Problem Details for AI Agent Harness Errors</title>
+<meta content="Arata Ouchi" name="author">
+<meta content='
+       AI agents run language models inside a control program, the "harness",
+that parses model output, invokes tools, manages context, and enforces
+limits. Failures in this layer, such as malformed structured output,
+exceeded turn limits, or context window overflow, are currently reported
+in incompatible, implementation-specific ways. This document defines a
+problem type and extension members for Problem Details (RFC 9457) that
+describe agent harness errors in a machine-readable way, including
+whether an error is transient and whether it can be repaired by the
+model itself. It also establishes an IANA registry of harness error
+codes. 
+    ' name="description">
+<meta content="xml2rfc 3.35.0" name="generator">
+<meta content="AI agent" name="keyword">
+<meta content="LLM" name="keyword">
+<meta content="harness" name="keyword">
+<meta content="problem details" name="keyword">
+<meta content="error handling" name="keyword">
+<meta content="draft-ouchi-agent-harness-errors-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.9.0
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.14.3
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.9.4
+-->
+<link href="draft-ouchi-agent-harness-errors.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">Agent Harness Errors</td>
+<td class="right">November 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Ouchi</td>
+<td class="center">Expires 8 May 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-ouchi-agent-harness-errors-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-11-04" class="published">4 November 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-05-08">8 May 2027</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">A. Ouchi</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Problem Details for AI Agent Harness Errors</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">AI agents run language models inside a control program, the "harness",
+that parses model output, invokes tools, manages context, and enforces
+limits. Failures in this layer, such as malformed structured output,
+exceeded turn limits, or context window overflow, are currently reported
+in incompatible, implementation-specific ways. This document defines a
+problem type and extension members for Problem Details (RFC 9457) that
+describe agent harness errors in a machine-readable way, including
+whether an error is transient and whether it can be repaired by the
+model itself. It also establishes an IANA registry of harness error
+codes.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 8 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-scope" class="internal xref">Scope</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-problem-type" class="internal xref">Problem Type</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-extension-members" class="internal xref">Extension Members</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-code" class="internal xref">code</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-origin" class="internal xref">origin</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-retryable" class="internal xref">retryable</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-model_recoverable" class="internal xref">model_recoverable</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-model_feedback" class="internal xref">model_feedback</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-retry_after" class="internal xref">retry_after</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.7">
+                <p id="section-toc.1-1.4.2.7.1"><a href="#section-4.7" class="auto internal xref">4.7</a>.  <a href="#name-attempts" class="internal xref">attempts</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.8">
+                <p id="section-toc.1-1.4.2.8.1"><a href="#section-4.8" class="auto internal xref">4.8</a>.  <a href="#name-max_attempts" class="internal xref">max_attempts</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.9">
+                <p id="section-toc.1-1.4.2.9.1"><a href="#section-4.9" class="auto internal xref">4.9</a>.  <a href="#name-limit" class="internal xref">limit</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.10">
+                <p id="section-toc.1-1.4.2.10.1"><a href="#section-4.10" class="auto internal xref">4.10</a>. <a href="#name-location" class="internal xref">location</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.11">
+                <p id="section-toc.1-1.4.2.11.1"><a href="#section-4.11" class="auto internal xref">4.11</a>. <a href="#name-upstream" class="internal xref">upstream</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.12">
+                <p id="section-toc.1-1.4.2.12.1"><a href="#section-4.12" class="auto internal xref">4.12</a>. <a href="#name-causes" class="internal xref">causes</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-error-codes" class="internal xref">Error Codes</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-categories" class="internal xref">Categories</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-initial-codes" class="internal xref">Initial Codes</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-code-semantics" class="internal xref">Code Semantics</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-choosing-between-codes" class="internal xref">Choosing Between Codes</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-carrying-harness-errors" class="internal xref">Carrying Harness Errors</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-http" class="internal xref">HTTP</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-outside-http" class="internal xref">Outside HTTP</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-json-rpc" class="internal xref">JSON-RPC</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4">
+                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-telemetry" class="internal xref">Telemetry</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-model-context-protocol-bind" class="internal xref">Model Context Protocol Binding</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-metadata-key" class="internal xref">Metadata Key</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-server-to-client" class="internal xref">Server to Client</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-client-side-translating-mcp" class="internal xref">Client Side: Translating MCP Errors</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-sampling" class="internal xref">Sampling</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-agent2agent-protocol-bindin" class="internal xref">Agent2Agent Protocol Binding</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-extension-declaration" class="internal xref">Extension Declaration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-task-failures" class="internal xref">Task Failures</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-protocol-errors" class="internal xref">Protocol Errors</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.4">
+                <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-client-side-translating-a2a" class="internal xref">Client Side: Translating A2A Errors</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.5">
+                <p id="section-toc.1-1.8.2.5.1"><a href="#section-8.5" class="auto internal xref">8.5</a>.  <a href="#name-nested-agents" class="internal xref">Nested Agents</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-example" class="internal xref">Example</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-http-problem-type" class="internal xref">HTTP Problem Type</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-agent-harness-error-codes-r" class="internal xref">Agent Harness Error Codes Registry</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#section-13" class="auto internal xref">13</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1">
+                <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
+                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-mapping-from-existing-imple" class="internal xref">Mapping from Existing Implementations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
+            <p id="section-toc.1-1.15.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-open-issues" class="internal xref">Open Issues</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16">
+            <p id="section-toc.1-1.16.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-mcp-and-a2a-examples" class="internal xref">MCP and A2A Examples</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17">
+            <p id="section-toc.1-1.17.1"><a href="#appendix-D" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18">
+            <p id="section-toc.1-1.18.1"><a href="#appendix-E" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">An AI agent is commonly built as a loop: a harness sends a prompt to a
+language model, interprets the model's output, executes any requested
+tool calls, appends the results to the context, and repeats until a
+stopping condition is reached.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">Errors can arise at several points in this loop. Some originate in
+upstream model APIs (rate limiting, overload), some in tools (timeouts,
+permission denial), and some in the harness itself (output that cannot
+be parsed, schema violations, exhausted turn or token budgets). Existing
+specifications cover parts of this space:<a href="#section-1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-3.1">
+          <p id="section-1-3.1.1">Protocol-level errors in agent protocols such as <span>[<a href="#MCP" class="cite xref">MCP</a>]</span> and <span>[<a href="#A2A" class="cite xref">A2A</a>]</span>
+use <span>[<a href="#JSON-RPC" class="cite xref">JSON-RPC</a>]</span> error codes, which describe failures of the protocol
+exchange, not of the agent's reasoning loop.<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-3.2">
+          <p id="section-1-3.2.1">Model APIs report termination reasons (for example, output truncated
+at a token limit, or a refusal), but these are not error codes and
+differ between providers.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-3.3">
+          <p id="section-1-3.3.1">Agent frameworks define their own exception types with incompatible
+names and granularity.<a href="#section-1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-3.4">
+          <p id="section-1-3.4.1">Observability conventions such as <span>[<a href="#OTEL-GENAI" class="cite xref">OTEL-GENAI</a>]</span> provide an
+<code>error.type</code> attribute but do not define its values.<a href="#section-1-3.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-4">As a result, a client that orchestrates agents from several vendors, or
+a supervising agent that delegates to sub-agents, cannot reliably decide
+how to react to a failure: retry unchanged, feed the error back to the
+model so it can correct itself, adjust a limit, escalate to a human, or
+give up.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">This document defines:<a href="#section-1-5" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1-6">
+<li id="section-1-6.1">
+          <p id="section-1-6.1.1">A Problem Details <span>[<a href="#RFC9457" class="cite xref">RFC9457</a>]</span> problem type for agent harness errors
+(<a href="#problem-type" class="auto internal xref">Section 3</a>).<a href="#section-1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-1-6.2">
+          <p id="section-1-6.2.1">Extension members that carry a stable error code, the error's
+origin, and recovery hints (<a href="#members" class="auto internal xref">Section 4</a>).<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-1-6.3">
+          <p id="section-1-6.3.1">An initial set of error codes (<a href="#codes" class="auto internal xref">Section 5</a>) and an IANA registry for
+them (<a href="#iana" class="auto internal xref">Section 12</a>).<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-1-6.4">
+          <p id="section-1-6.4.1">Guidance for carrying these objects outside HTTP, including in
+JSON-RPC error data and telemetry (<a href="#transport" class="auto internal xref">Section 6</a>).<a href="#section-1-6.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<div id="scope">
+<section id="section-1.1">
+        <h3 id="name-scope">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-scope" class="section-name selfRef">Scope</a>
+        </h3>
+<p id="section-1.1-1">This document covers errors detected by the harness during an agent
+run. It does not define model behavior, tool semantics, agent-to-agent
+protocols, or how a harness should implement retries. It does not
+replace protocol-level error codes; it complements them.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-2">
+        <dt id="section-2-2.1">Agent:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.2">
+          <p id="section-2-2.2.1">A system that uses one or more language models to decide on and
+perform actions, usually over multiple steps.<a href="#section-2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.3">Harness:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.4">
+          <p id="section-2-2.4.1">The non-model software that drives an agent: it constructs model
+inputs, interprets model outputs, executes tools, manages context, and
+enforces limits.<a href="#section-2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.5">Turn:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.6">
+          <p id="section-2-2.6.1">One model invocation together with the processing of its output.<a href="#section-2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.7">Run:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.8">
+          <p id="section-2-2.8.1">A sequence of turns performed to accomplish one task.<a href="#section-2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.9">Structured output:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.10">
+          <p id="section-2-2.10.1">Model output that is required to conform to a machine-readable format,
+such as JSON conforming to a schema, or a tool call with typed
+arguments.<a href="#section-2-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.11">Model feedback:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.12">
+          <p id="section-2-2.12.1">Text that the harness supplies to the model in a subsequent turn to
+describe an error, so that the model can correct its behavior.<a href="#section-2-2.12.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="problem-type">
+<section id="section-3">
+      <h2 id="name-problem-type">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-problem-type" class="section-name selfRef">Problem Type</a>
+      </h2>
+<p id="section-3-1">This document registers the following problem type:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-2">
+        <dt id="section-3-2.1">Type URI:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.2">
+          <p id="section-3-2.2.1"><code>https://iana.org/assignments/http-problem-types#agent-harness-error</code><a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-2.3">Title:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.4">
+          <p id="section-3-2.4.1">Agent Harness Error<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-2.5">Recommended HTTP status code:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.6">
+          <p id="section-3-2.6.1">Varies; see <a href="#http-status" class="auto internal xref">Section 6.1</a>.<a href="#section-3-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-3-3">A problem details object of this type <span class="bcp14">MUST</span> include the <code>code</code> member
+defined in <a href="#members" class="auto internal xref">Section 4</a>. The <code>title</code> member <span class="bcp14">SHOULD</span> be the title
+registered for that code. The <code>detail</code> member <span class="bcp14">SHOULD</span> describe the
+specific occurrence in a form suitable for human operators.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">Consumers <span class="bcp14">MUST</span> use the <code>code</code> member, not <code>title</code> or <code>detail</code>, to
+determine the kind of error.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">Until the IANA registration in <a href="#iana" class="auto internal xref">Section 12</a> is complete, implementations
+<span class="bcp14">MAY</span> use the type URI <code>https://agenterrors.org/problems/harness-error</code>.
+Consumers <span class="bcp14">MUST</span> treat the two type URIs as equivalent.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-3-6.1">
+          <p id="section-3-6.1.1">RFC Editor: please remove the preceding paragraph before publication.<a href="#section-3-6.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="members">
+<section id="section-4">
+      <h2 id="name-extension-members">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-extension-members" class="section-name selfRef">Extension Members</a>
+      </h2>
+<p id="section-4-1">The following extension members are defined for the
+<code>agent-harness-error</code> problem type. Consumers <span class="bcp14">MUST</span> ignore members they
+do not recognize, as required by <span>[<a href="#RFC9457" class="cite xref">RFC9457</a>]</span>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="code">
+<section id="section-4.1">
+        <h3 id="name-code">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-code" class="section-name selfRef">code</a>
+        </h3>
+<p id="section-4.1-1">A string containing a registered harness error code (<a href="#codes" class="auto internal xref">Section 5</a>).
+<span class="bcp14">REQUIRED</span>.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">Codes have the form <code>&lt;category&gt;.&lt;name&gt;</code>, where both parts consist of
+lowercase ASCII letters, digits, and underscores. The category groups
+related codes (<a href="#categories" class="auto internal xref">Section 5.1</a>). Implementations <span class="bcp14">MAY</span> define private codes
+using a category of the form <code>x-&lt;organization&gt;</code>; such codes <span class="bcp14">MUST NOT</span> be
+registered.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">A consumer that receives an unknown code within a known category <span class="bcp14">SHOULD</span>
+treat it as a generic error of that category.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="origin">
+<section id="section-4.2">
+        <h3 id="name-origin">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-origin" class="section-name selfRef">origin</a>
+        </h3>
+<p id="section-4.2-1">A string identifying the component in which the error originated.
+<span class="bcp14">OPTIONAL</span>. Values are:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.2-2">
+          <dt id="section-4.2-2.1">
+<code>model</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.2">
+            <p id="section-4.2-2.2.1">The language model produced output that the harness could not accept.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-2.3">
+<code>harness</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.4">
+            <p id="section-4.2-2.4.1">The harness itself, including enforcement of its own limits.<a href="#section-4.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-2.5">
+<code>tool</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.6">
+            <p id="section-4.2-2.6.1">A tool invoked by the harness.<a href="#section-4.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-2.7">
+<code>upstream</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.8">
+            <p id="section-4.2-2.8.1">A remote service used by the harness, typically the model API.<a href="#section-4.2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-2.9">
+<code>user</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.10">
+            <p id="section-4.2-2.10.1">A human participant, for example by denying an approval.<a href="#section-4.2-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="retryable">
+<section id="section-4.3">
+        <h3 id="name-retryable">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-retryable" class="section-name selfRef">retryable</a>
+        </h3>
+<p id="section-4.3-1">A boolean. <span class="bcp14">OPTIONAL</span>. If <code>true</code>, repeating the same operation without
+modification has a reasonable chance of success (for example, after a
+transient upstream failure). If <code>false</code>, repeating the operation
+unchanged is not expected to succeed.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">If absent, consumers <span class="bcp14">SHOULD</span> use the default recorded in the registry for
+the code.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="modelrecoverable">
+<section id="section-4.4">
+        <h3 id="name-model_recoverable">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-model_recoverable" class="section-name selfRef">model_recoverable</a>
+        </h3>
+<p id="section-4.4-1">A boolean. <span class="bcp14">OPTIONAL</span>. If <code>true</code>, the harness or a consumer can reasonably
+expect the model to correct the error if it is informed of it in a
+subsequent turn, for example by re-generating structured output that
+conforms to the schema.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2"><code>retryable</code> and <code>model_recoverable</code> are independent. An error can be
+neither (for example, a turn limit), either, or both.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<p id="section-4.4-3">If absent, consumers <span class="bcp14">SHOULD</span> use the default recorded in the registry for
+the code.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="modelfeedback">
+<section id="section-4.5">
+        <h3 id="name-model_feedback">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-model_feedback" class="section-name selfRef">model_feedback</a>
+        </h3>
+<p id="section-4.5-1">A string. <span class="bcp14">OPTIONAL</span>. Text intended to be supplied to the model so that
+it can correct the error, such as a description of the schema violation.
+This member is distinct from <code>detail</code>, which is intended for humans. See
+<a href="#security" class="auto internal xref">Section 10</a> for considerations on its content.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="retryafter">
+<section id="section-4.6">
+        <h3 id="name-retry_after">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-retry_after" class="section-name selfRef">retry_after</a>
+        </h3>
+<p id="section-4.6-1">A non-negative number of seconds after which a retry is advised.
+<span class="bcp14">OPTIONAL</span>. When the problem details object is carried in an HTTP response
+that also includes a <code>Retry-After</code> header field <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>, the two
+<span class="bcp14">SHOULD</span> agree.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="attempts">
+<section id="section-4.7">
+        <h3 id="name-attempts">
+<a href="#section-4.7" class="section-number selfRef">4.7. </a><a href="#name-attempts" class="section-name selfRef">attempts</a>
+        </h3>
+<p id="section-4.7-1">A non-negative integer giving the number of attempts that the harness
+already made for the failed operation, including the one that produced
+this error. <span class="bcp14">OPTIONAL</span>. This lets a consumer distinguish a first failure
+from a failure that persisted through internal retries.<a href="#section-4.7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="maxattempts">
+<section id="section-4.8">
+        <h3 id="name-max_attempts">
+<a href="#section-4.8" class="section-number selfRef">4.8. </a><a href="#name-max_attempts" class="section-name selfRef">max_attempts</a>
+        </h3>
+<p id="section-4.8-1">A non-negative integer giving the number of attempts the harness was
+configured to make. <span class="bcp14">OPTIONAL</span>.<a href="#section-4.8-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="limit">
+<section id="section-4.9">
+        <h3 id="name-limit">
+<a href="#section-4.9" class="section-number selfRef">4.9. </a><a href="#name-limit" class="section-name selfRef">limit</a>
+        </h3>
+<p id="section-4.9-1">A JSON object describing a limit that was exceeded. <span class="bcp14">OPTIONAL</span>. It
+contains:<a href="#section-4.9-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.9-2">
+          <dt id="section-4.9-2.1">
+<code>name</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.9-2.2">
+            <p id="section-4.9-2.2.1">A string naming the limit, for example <code>turns</code>, <code>input_tokens</code>,
+<code>output_tokens</code>, <code>context_tokens</code>, <code>cost</code>, or <code>wall_clock_seconds</code>.<a href="#section-4.9-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.9-2.3">
+<code>value</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.9-2.4">
+            <p id="section-4.9-2.4.1">A number giving the configured limit.<a href="#section-4.9-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.9-2.5">
+<code>observed</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.9-2.6">
+            <p id="section-4.9-2.6.1">A number giving the observed value, if known.<a href="#section-4.9-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.9-2.7">
+<code>unit</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.9-2.8">
+            <p id="section-4.9-2.8.1">A string giving the unit, if not implied by <code>name</code>. For <code>cost</code>, an
+ISO 4217 currency code.<a href="#section-4.9-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="location">
+<section id="section-4.10">
+        <h3 id="name-location">
+<a href="#section-4.10" class="section-number selfRef">4.10. </a><a href="#name-location" class="section-name selfRef">location</a>
+        </h3>
+<p id="section-4.10-1">A JSON object locating the error within the run. <span class="bcp14">OPTIONAL</span>. It <span class="bcp14">MAY</span>
+contain <code>run_id</code> (string), <code>turn</code> (integer, starting at 1), <code>tool_name</code>
+(string), <code>tool_call_id</code> (string), and <code>pointer</code> (a JSON Pointer string
+identifying the offending location within structured output).<a href="#section-4.10-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="upstream">
+<section id="section-4.11">
+        <h3 id="name-upstream">
+<a href="#section-4.11" class="section-number selfRef">4.11. </a><a href="#name-upstream" class="section-name selfRef">upstream</a>
+        </h3>
+<p id="section-4.11-1">A JSON object containing raw information reported by an upstream
+component. <span class="bcp14">OPTIONAL</span>. It <span class="bcp14">MAY</span> contain <code>provider</code> (string), <code>status</code>
+(integer, an HTTP status code), <code>code</code> (string), and <code>stop_reason</code>
+(string). This member preserves vendor-specific detail; consumers
+<span class="bcp14">SHOULD NOT</span> depend on its contents for control flow.<a href="#section-4.11-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="causes">
+<section id="section-4.12">
+        <h3 id="name-causes">
+<a href="#section-4.12" class="section-number selfRef">4.12. </a><a href="#name-causes" class="section-name selfRef">causes</a>
+        </h3>
+<p id="section-4.12-1">An array of problem details objects that caused this error, ordered from
+most to least recent. <span class="bcp14">OPTIONAL</span>. For example, an
+<code>output.retries_exhausted</code> error can list the individual
+<code>output.schema_violation</code> errors that preceded it.<a href="#section-4.12-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="codes">
+<section id="section-5">
+      <h2 id="name-error-codes">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-error-codes" class="section-name selfRef">Error Codes</a>
+      </h2>
+<div id="categories">
+<section id="section-5.1">
+        <h3 id="name-categories">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-categories" class="section-name selfRef">Categories</a>
+        </h3>
+<span id="name-error-categories"></span><table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-error-categories" class="selfRef">Error categories</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Category</th>
+              <th class="text-left" rowspan="1" colspan="1">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">output</td>
+              <td class="text-left" rowspan="1" colspan="1">Model output could not be accepted by the harness.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">loop</td>
+              <td class="text-left" rowspan="1" colspan="1">A limit on the agent loop was reached, or the loop is not progressing.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">context</td>
+              <td class="text-left" rowspan="1" colspan="1">Context assembly or management failed.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">tool</td>
+              <td class="text-left" rowspan="1" colspan="1">Tool resolution or execution failed.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">policy</td>
+              <td class="text-left" rowspan="1" colspan="1">A policy, guardrail, refusal, or human decision stopped the operation.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream</td>
+              <td class="text-left" rowspan="1" colspan="1">A remote dependency, typically the model API, failed.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">The harness failed for another reason.</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="initial-codes">
+<section id="section-5.2">
+        <h3 id="name-initial-codes">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-initial-codes" class="section-name selfRef">Initial Codes</a>
+        </h3>
+<p id="section-5.2-1">The columns R and M give the registry defaults for <code>retryable</code> and
+<code>model_recoverable</code> respectively.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<span id="name-initial-harness-error-codes"></span><table class="center" id="table-2">
+          <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-initial-harness-error-codes" class="selfRef">Initial harness error codes</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Code</th>
+              <th class="text-left" rowspan="1" colspan="1">Title</th>
+              <th class="text-left" rowspan="1" colspan="1">Origin</th>
+              <th class="text-left" rowspan="1" colspan="1">R</th>
+              <th class="text-left" rowspan="1" colspan="1">M</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">output.malformed</td>
+              <td class="text-left" rowspan="1" colspan="1">Malformed Output</td>
+              <td class="text-left" rowspan="1" colspan="1">model</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">output.schema_violation</td>
+              <td class="text-left" rowspan="1" colspan="1">Output Schema Violation</td>
+              <td class="text-left" rowspan="1" colspan="1">model</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">output.truncated</td>
+              <td class="text-left" rowspan="1" colspan="1">Output Truncated</td>
+              <td class="text-left" rowspan="1" colspan="1">model</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">output.empty</td>
+              <td class="text-left" rowspan="1" colspan="1">Empty Output</td>
+              <td class="text-left" rowspan="1" colspan="1">model</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">output.unknown_tool</td>
+              <td class="text-left" rowspan="1" colspan="1">Unknown Tool Requested</td>
+              <td class="text-left" rowspan="1" colspan="1">model</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">output.invalid_tool_arguments</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Tool Arguments</td>
+              <td class="text-left" rowspan="1" colspan="1">model</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">output.retries_exhausted</td>
+              <td class="text-left" rowspan="1" colspan="1">Output Retries Exhausted</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">loop.max_turns_exceeded</td>
+              <td class="text-left" rowspan="1" colspan="1">Maximum Turns Exceeded</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">loop.budget_exceeded</td>
+              <td class="text-left" rowspan="1" colspan="1">Budget Exceeded</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">loop.timeout</td>
+              <td class="text-left" rowspan="1" colspan="1">Run Timeout</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">loop.repetition_detected</td>
+              <td class="text-left" rowspan="1" colspan="1">Repetition Detected</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">context.window_exceeded</td>
+              <td class="text-left" rowspan="1" colspan="1">Context Window Exceeded</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">context.compaction_failed</td>
+              <td class="text-left" rowspan="1" colspan="1">Context Compaction Failed</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">tool.not_available</td>
+              <td class="text-left" rowspan="1" colspan="1">Tool Not Available</td>
+              <td class="text-left" rowspan="1" colspan="1">tool</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">tool.execution_failed</td>
+              <td class="text-left" rowspan="1" colspan="1">Tool Execution Failed</td>
+              <td class="text-left" rowspan="1" colspan="1">tool</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">tool.timeout</td>
+              <td class="text-left" rowspan="1" colspan="1">Tool Timeout</td>
+              <td class="text-left" rowspan="1" colspan="1">tool</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">tool.permission_denied</td>
+              <td class="text-left" rowspan="1" colspan="1">Tool Permission Denied</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">tool.sandbox_violation</td>
+              <td class="text-left" rowspan="1" colspan="1">Sandbox Violation</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">policy.guardrail_triggered</td>
+              <td class="text-left" rowspan="1" colspan="1">Guardrail Triggered</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">policy.model_refusal</td>
+              <td class="text-left" rowspan="1" colspan="1">Model Refusal</td>
+              <td class="text-left" rowspan="1" colspan="1">model</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">policy.content_filtered</td>
+              <td class="text-left" rowspan="1" colspan="1">Content Filtered</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">policy.approval_denied</td>
+              <td class="text-left" rowspan="1" colspan="1">Approval Denied</td>
+              <td class="text-left" rowspan="1" colspan="1">user</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.rate_limited</td>
+              <td class="text-left" rowspan="1" colspan="1">Upstream Rate Limited</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.overloaded</td>
+              <td class="text-left" rowspan="1" colspan="1">Upstream Overloaded</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.unavailable</td>
+              <td class="text-left" rowspan="1" colspan="1">Upstream Unavailable</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.authentication_failed</td>
+              <td class="text-left" rowspan="1" colspan="1">Upstream Authentication Failed</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.invalid_request</td>
+              <td class="text-left" rowspan="1" colspan="1">Upstream Invalid Request</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.invalid_response</td>
+              <td class="text-left" rowspan="1" colspan="1">Upstream Invalid Response</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.agent_failed</td>
+              <td class="text-left" rowspan="1" colspan="1">Remote Agent Failed</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">true</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">harness.cancelled</td>
+              <td class="text-left" rowspan="1" colspan="1">Run Cancelled</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">harness.internal_error</td>
+              <td class="text-left" rowspan="1" colspan="1">Harness Internal Error</td>
+              <td class="text-left" rowspan="1" colspan="1">harness</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+              <td class="text-left" rowspan="1" colspan="1">false</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="code-semantics">
+<section id="section-5.3">
+        <h3 id="name-code-semantics">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-code-semantics" class="section-name selfRef">Code Semantics</a>
+        </h3>
+<span class="break"></span><dl class="dlParallel" id="section-5.3-1">
+          <dt id="section-5.3-1.1">output.malformed:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.2">
+            <p id="section-5.3-1.2.1">The model output could not be parsed in the required syntax, for
+example invalid JSON.<a href="#section-5.3-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.3">output.schema_violation:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.4">
+            <p id="section-5.3-1.4.1">The output was syntactically valid but did not conform to the required
+schema. <code>location.pointer</code> <span class="bcp14">SHOULD</span> identify the offending location.<a href="#section-5.3-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.5">output.truncated:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.6">
+            <p id="section-5.3-1.6.1">The output ended before completion because an output token limit was
+reached. Retrying unchanged is not expected to succeed; raising the
+limit or reducing the requested output may.<a href="#section-5.3-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.7">output.empty:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.8">
+            <p id="section-5.3-1.8.1">The model produced no usable content.<a href="#section-5.3-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.9">output.unknown_tool:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.10">
+            <p id="section-5.3-1.10.1">The model requested a tool that is not offered to it.<a href="#section-5.3-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.11">output.invalid_tool_arguments:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.12">
+            <p id="section-5.3-1.12.1">The model requested an offered tool with arguments that are missing,
+malformed, or do not conform to the tool's input schema.<a href="#section-5.3-1.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.13">output.retries_exhausted:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.14">
+            <p id="section-5.3-1.14.1">The harness re-prompted the model after one or more <code>output.*</code> errors
+and the configured number of attempts was exhausted. <code>causes</code> <span class="bcp14">SHOULD</span>
+list the underlying errors.<a href="#section-5.3-1.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.15">loop.max_turns_exceeded:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.16">
+            <p id="section-5.3-1.16.1">The run reached its configured maximum number of turns.<a href="#section-5.3-1.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.17">loop.budget_exceeded:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.18">
+            <p id="section-5.3-1.18.1">A token, cost, or other resource budget for the run was exhausted.
+<code>limit</code> <span class="bcp14">SHOULD</span> be present.<a href="#section-5.3-1.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.19">loop.timeout:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.20">
+            <p id="section-5.3-1.20.1">The run exceeded its wall-clock time limit.<a href="#section-5.3-1.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.21">loop.repetition_detected:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.22">
+            <p id="section-5.3-1.22.1">The harness determined that the run is not progressing, for example
+because the same tool call with the same arguments was repeated.<a href="#section-5.3-1.22.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.23">context.window_exceeded:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.24">
+            <p id="section-5.3-1.24.1">The assembled input exceeds the model's context window and could not
+be reduced.<a href="#section-5.3-1.24.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.25">context.compaction_failed:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.26">
+            <p id="section-5.3-1.26.1">An attempt to reduce the context, for example by summarization, failed.<a href="#section-5.3-1.26.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.27">tool.not_available:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.28">
+            <p id="section-5.3-1.28.1">A requested tool exists but cannot currently be used, for example
+because its server is disconnected.<a href="#section-5.3-1.28.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.29">tool.execution_failed:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.30">
+            <p id="section-5.3-1.30.1">A tool was invoked and reported failure.<a href="#section-5.3-1.30.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.31">tool.timeout:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.32">
+            <p id="section-5.3-1.32.1">A tool did not complete within its time limit.<a href="#section-5.3-1.32.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.33">tool.permission_denied:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.34">
+            <p id="section-5.3-1.34.1">The harness's permission configuration did not allow the tool call.<a href="#section-5.3-1.34.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.35">tool.sandbox_violation:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.36">
+            <p id="section-5.3-1.36.1">A tool attempted an operation prohibited by its sandbox.<a href="#section-5.3-1.36.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.37">policy.guardrail_triggered:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.38">
+            <p id="section-5.3-1.38.1">An input or output guardrail configured in the harness stopped the
+operation.<a href="#section-5.3-1.38.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.39">policy.model_refusal:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.40">
+            <p id="section-5.3-1.40.1">The model declined to perform the request.<a href="#section-5.3-1.40.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.41">policy.content_filtered:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.42">
+            <p id="section-5.3-1.42.1">A content filter applied by an upstream provider blocked the input or
+output.<a href="#section-5.3-1.42.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.43">policy.approval_denied:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.44">
+            <p id="section-5.3-1.44.1">A human denied an approval that the harness requested.<a href="#section-5.3-1.44.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.45">upstream.rate_limited:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.46">
+            <p id="section-5.3-1.46.1">The upstream service rejected the request due to rate limiting.
+<code>retry_after</code> <span class="bcp14">SHOULD</span> be present if known.<a href="#section-5.3-1.46.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.47">upstream.overloaded:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.48">
+            <p id="section-5.3-1.48.1">The upstream service reported that it is temporarily overloaded.<a href="#section-5.3-1.48.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.49">upstream.unavailable:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.50">
+            <p id="section-5.3-1.50.1">The upstream service could not be reached or returned a server error.<a href="#section-5.3-1.50.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.51">upstream.authentication_failed:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.52">
+            <p id="section-5.3-1.52.1">The upstream service rejected the harness's credentials.<a href="#section-5.3-1.52.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.53">upstream.invalid_request:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.54">
+            <p id="section-5.3-1.54.1">The upstream service rejected the request as invalid, for reasons not
+covered by a more specific code.<a href="#section-5.3-1.54.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.55">upstream.invalid_response:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.56">
+            <p id="section-5.3-1.56.1">The upstream service returned a response that does not conform to its
+protocol.<a href="#section-5.3-1.56.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.57">upstream.agent_failed:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.58">
+            <p id="section-5.3-1.58.1">A remote agent to which the harness delegated work reported that the
+delegated task failed. <code>causes</code> <span class="bcp14">SHOULD</span> contain the remote agent's
+harness error object, if available. See <a href="#a2a" class="auto internal xref">Section 8</a>.<a href="#section-5.3-1.58.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.59">harness.cancelled:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.60">
+            <p id="section-5.3-1.60.1">The run was cancelled by its caller.<a href="#section-5.3-1.60.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-1.61">harness.internal_error:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-1.62">
+            <p id="section-5.3-1.62.1">The harness failed for a reason not covered by any other code.<a href="#section-5.3-1.62.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="choosing-between-codes">
+<section id="section-5.4">
+        <h3 id="name-choosing-between-codes">
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-choosing-between-codes" class="section-name selfRef">Choosing Between Codes</a>
+        </h3>
+<p id="section-5.4-1">When more than one code applies, the harness <span class="bcp14">SHOULD</span> report the most
+specific code and <span class="bcp14">MAY</span> list others in <code>causes</code>. When an error from a
+lower layer is the direct cause, the harness <span class="bcp14">SHOULD</span> report the code that
+best describes what the consumer needs to do. For example, output that
+is invalid JSON because it was truncated <span class="bcp14">SHOULD</span> be reported as
+<code>output.truncated</code>, not <code>output.malformed</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="transport">
+<section id="section-6">
+      <h2 id="name-carrying-harness-errors">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-carrying-harness-errors" class="section-name selfRef">Carrying Harness Errors</a>
+      </h2>
+<div id="http-status">
+<section id="section-6.1">
+        <h3 id="name-http">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-http" class="section-name selfRef">HTTP</a>
+        </h3>
+<p id="section-6.1-1">When a harness error is returned in an HTTP response, the response
+<span class="bcp14">SHOULD</span> use the <code>application/problem+json</code> media type <span>[<a href="#RFC9457" class="cite xref">RFC9457</a>]</span>. The
+following status codes are <span class="bcp14">RECOMMENDED</span>:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<span id="name-recommended-http-status-cod"></span><table class="center" id="table-3">
+          <caption>
+<a href="#table-3" class="selfRef">Table 3</a>:
+<a href="#name-recommended-http-status-cod" class="selfRef">Recommended HTTP status codes</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Category or code</th>
+              <th class="text-left" rowspan="1" colspan="1">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.rate_limited</td>
+              <td class="text-left" rowspan="1" colspan="1">429</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.overloaded, upstream.unavailable</td>
+              <td class="text-left" rowspan="1" colspan="1">503</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">upstream.* (other), upstream.agent_failed</td>
+              <td class="text-left" rowspan="1" colspan="1">502</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">loop.timeout, tool.timeout</td>
+              <td class="text-left" rowspan="1" colspan="1">504</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">policy.*, tool.permission_denied</td>
+              <td class="text-left" rowspan="1" colspan="1">403</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">harness.internal_error</td>
+              <td class="text-left" rowspan="1" colspan="1">500</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">others</td>
+              <td class="text-left" rowspan="1" colspan="1">422</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="outside-http">
+<section id="section-6.2">
+        <h3 id="name-outside-http">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-outside-http" class="section-name selfRef">Outside HTTP</a>
+        </h3>
+<p id="section-6.2-1">A harness error object is a JSON object <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> and <span class="bcp14">MAY</span> be used
+outside HTTP, for example as the result of a library call, in a log
+record, or in a streamed event. In such cases the <code>status</code> member <span class="bcp14">SHOULD</span>
+be omitted.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="jsonrpc">
+<section id="section-6.3">
+        <h3 id="name-json-rpc">
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-json-rpc" class="section-name selfRef">JSON-RPC</a>
+        </h3>
+<p id="section-6.3-1">When a harness error is reported in a <span>[<a href="#JSON-RPC" class="cite xref">JSON-RPC</a>]</span> error response, the
+harness error object <span class="bcp14">SHOULD</span> be placed in the <code>data</code> member of the
+JSON-RPC error object. The JSON-RPC <code>code</code> and <code>message</code> members
+continue to be governed by the protocol in use; this document does not
+allocate JSON-RPC error codes. A receiver that understands this document
+<span class="bcp14">SHOULD</span> prefer the <code>code</code> in <code>data</code> over the JSON-RPC <code>code</code> for deciding
+how to react.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.3-2">A receiver can recognize a harness error object in <code>data</code> by the value
+of its <code>type</code> member.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.3-3"><a href="#mcp" class="auto internal xref">Section 7</a> and <a href="#a2a" class="auto internal xref">Section 8</a> give specific rules for the Model Context Protocol
+and the Agent2Agent protocol.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="telemetry">
+<section id="section-6.4">
+        <h3 id="name-telemetry">
+<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-telemetry" class="section-name selfRef">Telemetry</a>
+        </h3>
+<p id="section-6.4-1">When harness errors are recorded using <span>[<a href="#OTEL-GENAI" class="cite xref">OTEL-GENAI</a>]</span> or similar
+conventions, the <code>code</code> value <span class="bcp14">SHOULD</span> be used as the value of the
+<code>error.type</code> attribute.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="mcp">
+<section id="section-7">
+      <h2 id="name-model-context-protocol-bind">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-model-context-protocol-bind" class="section-name selfRef">Model Context Protocol Binding</a>
+      </h2>
+<p id="section-7-1">This section defines how harness errors are carried in <span>[<a href="#MCP" class="cite xref">MCP</a>]</span>, in both
+directions: an MCP server reporting an error to an MCP client (the
+harness), and a harness translating MCP errors it receives into harness
+error codes. MCP distinguishes protocol errors, which are JSON-RPC error
+responses, from tool execution errors, which are successful
+<code>tools/call</code> results with <code>isError</code> set to <code>true</code>. This binding
+preserves that distinction.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<div id="mcp-key">
+<section id="section-7.1">
+        <h3 id="name-metadata-key">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-metadata-key" class="section-name selfRef">Metadata Key</a>
+        </h3>
+<p id="section-7.1-1">Harness error objects are carried in MCP <code>_meta</code> objects under the key
+<code>org.agenterrors/harness-error</code>. The value is a harness error object.
+The key uses a reverse-DNS prefix under a domain controlled by the
+editors of this document, as recommended by MCP for <code>_meta</code> keys.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="server-to-client">
+<section id="section-7.2">
+        <h3 id="name-server-to-client">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-server-to-client" class="section-name selfRef">Server to Client</a>
+        </h3>
+<p id="section-7.2-1">An MCP server that reports a tool failure <span class="bcp14">SHOULD</span> do so as a tool
+execution error, so that the model can see it and correct itself:<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.2-2.1">
+            <p id="section-7.2-2.1.1"><code>isError</code> is <code>true</code>;<a href="#section-7.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.2-2.2">
+            <p id="section-7.2-2.2.1"><code>content</code> contains at least one text item. If the harness error object
+has a <code>model_feedback</code> member, the first text item <span class="bcp14">SHOULD</span> contain that
+text; otherwise it <span class="bcp14">SHOULD</span> contain the <code>detail</code> text;<a href="#section-7.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.2-2.3">
+            <p id="section-7.2-2.3.1"><code>_meta</code> contains the harness error object under the key in
+<a href="#mcp-key" class="auto internal xref">Section 7.1</a>.<a href="#section-7.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-7.2-3">The following codes <span class="bcp14">SHOULD</span> be reported as tool execution errors:
+<code>tool.execution_failed</code>, <code>tool.timeout</code>, <code>tool.permission_denied</code>,
+<code>tool.not_available</code>, <code>tool.sandbox_violation</code>,
+<code>output.invalid_tool_arguments</code>, and any <code>upstream.*</code> error encountered
+by the tool.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+<p id="section-7.2-4">Errors that prevent the request from being processed as a tool call at
+all <span class="bcp14">SHOULD</span> be reported as JSON-RPC errors with the harness error object
+in <code>data</code>, using the JSON-RPC codes required by MCP:<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+<span id="name-mcp-json-rpc-codes-for-harn"></span><table class="center" id="table-4">
+          <caption>
+<a href="#table-4" class="selfRef">Table 4</a>:
+<a href="#name-mcp-json-rpc-codes-for-harn" class="selfRef">MCP JSON-RPC codes for harness errors</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Harness error code</th>
+              <th class="text-left" rowspan="1" colspan="1">JSON-RPC code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">output.unknown_tool</td>
+              <td class="text-left" rowspan="1" colspan="1">-32602 (Invalid params)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">harness.internal_error</td>
+              <td class="text-left" rowspan="1" colspan="1">-32603 (Internal error)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">other errors not reported as tool execution errors</td>
+              <td class="text-left" rowspan="1" colspan="1">-32603</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-7.2-6">Because the <code>content</code> text is placed in the model's context, a server
+<span class="bcp14">MUST NOT</span> put information in it that it would not also put in
+<code>model_feedback</code>.<a href="#section-7.2-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="client-side-translating-mcp-errors">
+<section id="section-7.3">
+        <h3 id="name-client-side-translating-mcp">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-client-side-translating-mcp" class="section-name selfRef">Client Side: Translating MCP Errors</a>
+        </h3>
+<p id="section-7.3-1">A harness acting as an MCP client <span class="bcp14">SHOULD</span> convert MCP errors into harness
+error objects as follows. If a harness error object is present (in
+<code>_meta</code> or in JSON-RPC <code>data</code>), its <code>code</code> <span class="bcp14">SHOULD</span> be used as is, and the
+harness <span class="bcp14">SHOULD</span> set <code>origin</code> to <code>tool</code> if absent. Otherwise:<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<span id="name-translating-mcp-errors"></span><table class="center" id="table-5">
+          <caption>
+<a href="#table-5" class="selfRef">Table 5</a>:
+<a href="#name-translating-mcp-errors" class="selfRef">Translating MCP errors</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">MCP signal</th>
+              <th class="text-left" rowspan="1" colspan="1">Harness error code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>tools/call</code> result with <code>isError: true</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">tool.execution_failed</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">JSON-RPC -32602 for a tool name the model chose that the server does not offer</td>
+              <td class="text-left" rowspan="1" colspan="1">output.unknown_tool</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">JSON-RPC -32602 for other reasons</td>
+              <td class="text-left" rowspan="1" colspan="1">output.invalid_tool_arguments</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">JSON-RPC -32601 (Method not found)</td>
+              <td class="text-left" rowspan="1" colspan="1">tool.not_available</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">JSON-RPC -32700, -32600</td>
+              <td class="text-left" rowspan="1" colspan="1">harness.internal_error</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">JSON-RPC -32603 or other server error</td>
+              <td class="text-left" rowspan="1" colspan="1">tool.execution_failed</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Request timeout or cancellation by the client due to timeout</td>
+              <td class="text-left" rowspan="1" colspan="1">tool.timeout</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Transport closed or server not connected</td>
+              <td class="text-left" rowspan="1" colspan="1">tool.not_available</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">HTTP 401 or 403 from an HTTP-based transport</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.authentication_failed</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-7.3-3">In each case the harness <span class="bcp14">SHOULD</span> preserve the original JSON-RPC code and
+message in the <code>upstream</code> member, with <code>provider</code> set to <code>mcp</code>.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sampling">
+<section id="section-7.4">
+        <h3 id="name-sampling">
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-sampling" class="section-name selfRef">Sampling</a>
+        </h3>
+<p id="section-7.4-1">When an MCP server requests sampling from a client and the client's
+harness fails, the client <span class="bcp14">SHOULD</span> return a JSON-RPC error with the
+harness error object in <code>data</code>. For example, if the user declines the
+sampling request, the code is <code>policy.approval_denied</code>.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="a2a">
+<section id="section-8">
+      <h2 id="name-agent2agent-protocol-bindin">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-agent2agent-protocol-bindin" class="section-name selfRef">Agent2Agent Protocol Binding</a>
+      </h2>
+<p id="section-8-1">This section defines how harness errors are carried in <span>[<a href="#A2A" class="cite xref">A2A</a>]</span>. In A2A,
+failures of a task are reported through the task's status, while
+failures of the protocol exchange are reported as protocol errors. This
+binding preserves that distinction.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<div id="extension-declaration">
+<section id="section-8.1">
+        <h3 id="name-extension-declaration">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-extension-declaration" class="section-name selfRef">Extension Declaration</a>
+        </h3>
+<p id="section-8.1-1">An A2A agent that emits harness error objects <span class="bcp14">SHOULD</span> declare this in its
+Agent Card as an extension, with the extension URI
+<code>https://agenterrors.org/ext/a2a/v1</code> and <code>required</code> set to <code>false</code>.
+That URI resolves to a description of this binding. Clients can
+activate the extension using the A2A extension activation mechanism.
+Agents <span class="bcp14">MUST</span> still report errors in the base A2A form, so that clients
+that do not support this extension continue to work.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="task-failures">
+<section id="section-8.2">
+        <h3 id="name-task-failures">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-task-failures" class="section-name selfRef">Task Failures</a>
+        </h3>
+<p id="section-8.2-1">When a task ends because of a harness error, the remote agent <span class="bcp14">SHOULD</span>:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.2-2.1">
+            <p id="section-8.2-2.1.1">set the task state as given in <a href="#a2a-states" class="auto internal xref">Table 6</a>;<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.2">
+            <p id="section-8.2-2.2.1">include in the status message a text part containing the <code>detail</code>
+text; and<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.3">
+            <p id="section-8.2-2.3.1">include in the status message a data part whose data is the harness
+error object.<a href="#section-8.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<span id="name-a2a-task-states-for-harness"></span><div id="a2a-states">
+<table class="center" id="table-6">
+          <caption>
+<a href="#table-6" class="selfRef">Table 6</a>:
+<a href="#name-a2a-task-states-for-harness" class="selfRef">A2A task states for harness errors</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Harness error code</th>
+              <th class="text-left" rowspan="1" colspan="1">A2A task state</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">harness.cancelled</td>
+              <td class="text-left" rowspan="1" colspan="1">canceled</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">policy.model_refusal, policy.guardrail_triggered, policy.content_filtered</td>
+              <td class="text-left" rowspan="1" colspan="1">rejected</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">all other codes</td>
+              <td class="text-left" rowspan="1" colspan="1">failed</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-8.2-4">Some conditions are not errors in A2A and <span class="bcp14">SHOULD NOT</span> be reported as
+harness errors while the task can continue. For example, when a harness
+needs approval from a human, it uses the <code>input-required</code> state; only if
+the approval is denied and the task ends does <code>policy.approval_denied</code>
+apply. Likewise, needing credentials uses <code>auth-required</code>.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="protocol-errors">
+<section id="section-8.3">
+        <h3 id="name-protocol-errors">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-protocol-errors" class="section-name selfRef">Protocol Errors</a>
+        </h3>
+<p id="section-8.3-1">A2A protocol errors <span class="bcp14">SHOULD</span> carry a harness error object in the JSON-RPC
+<code>data</code> member (or the corresponding error details in other A2A
+bindings) when the error was caused by a harness condition, such as
+<code>upstream.rate_limited</code> or <code>harness.internal_error</code>. The A2A error code
+is chosen according to A2A.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="client-side-translating-a2a-errors">
+<section id="section-8.4">
+        <h3 id="name-client-side-translating-a2a">
+<a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-client-side-translating-a2a" class="section-name selfRef">Client Side: Translating A2A Errors</a>
+        </h3>
+<p id="section-8.4-1">A harness that delegates to a remote agent over A2A treats the remote
+agent as an upstream component. If a harness error object is present,
+the harness <span class="bcp14">SHOULD</span> report <code>upstream.agent_failed</code> and place the received
+object in <code>causes</code>. The <code>retryable</code> member of the outer object <span class="bcp14">SHOULD</span> be
+copied from the received object. The <code>model_recoverable</code> member <span class="bcp14">SHOULD</span>
+be <code>true</code> only if the harness's own model could reasonably react, for
+example by rephrasing the delegated request. Otherwise:<a href="#section-8.4-1" class="pilcrow">¶</a></p>
+<span id="name-translating-a2a-errors"></span><table class="center" id="table-7">
+          <caption>
+<a href="#table-7" class="selfRef">Table 7</a>:
+<a href="#name-translating-a2a-errors" class="selfRef">Translating A2A errors</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">A2A signal</th>
+              <th class="text-left" rowspan="1" colspan="1">Harness error code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Task state <code>failed</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.agent_failed</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Task state <code>rejected</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">policy.model_refusal</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Task state <code>canceled</code> not requested by this harness</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.agent_failed</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">TaskNotFoundError (-32001)</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.invalid_request</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">TaskNotCancelableError (-32002)</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.invalid_request</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">PushNotificationNotSupportedError (-32003), UnsupportedOperationError (-32004), ContentTypeNotSupportedError (-32005)</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.invalid_request</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">InvalidAgentResponseError (-32006)</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.invalid_response</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">JSON-RPC -32700 to -32603</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.invalid_request or upstream.unavailable</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">HTTP 429</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.rate_limited</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">HTTP 401 or 403</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.authentication_failed</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Network failure or HTTP 5xx</td>
+              <td class="text-left" rowspan="1" colspan="1">upstream.unavailable</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-8.4-3">The harness <span class="bcp14">SHOULD</span> preserve the original A2A error code, message, and
+task state in the <code>upstream</code> member, with <code>provider</code> set to <code>a2a</code>.<a href="#section-8.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="nested-agents">
+<section id="section-8.5">
+        <h3 id="name-nested-agents">
+<a href="#section-8.5" class="section-number selfRef">8.5. </a><a href="#name-nested-agents" class="section-name selfRef">Nested Agents</a>
+        </h3>
+<p id="section-8.5-1">When an error passes through several agents, each harness wraps the
+received object in <code>causes</code> instead of rewriting it, so that the
+outermost consumer can see the original <code>code</code> and <code>origin</code>. A harness
+<span class="bcp14">MAY</span> truncate <code>causes</code> to limit size, and <span class="bcp14">SHOULD</span> keep the innermost
+entry. <a href="#security" class="auto internal xref">Section 10</a> applies to <code>model_feedback</code> received from remote
+agents.<a href="#section-8.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="example">
+<section id="section-9">
+      <h2 id="name-example">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-example" class="section-name selfRef">Example</a>
+      </h2>
+<p id="section-9-1">A harness asked a model for JSON conforming to a schema. The model
+returned a field of the wrong type three times, and the harness gave up.<a href="#section-9-1" class="pilcrow">¶</a></p>
+<div class="lang-http-message sourcecode" id="section-9-2">
+<pre>
+HTTP/1.1 422 Unprocessable Content
+Content-Type: application/problem+json
+
+{
+  "type": "https://iana.org/assignments/http-problem-types#agent-harness-error",
+  "title": "Output Retries Exhausted",
+  "detail": "Structured output failed validation after 3 attempts.",
+  "code": "output.retries_exhausted",
+  "origin": "harness",
+  "retryable": false,
+  "model_recoverable": false,
+  "attempts": 3,
+  "max_attempts": 3,
+  "location": { "run_id": "run_8f2c", "turn": 5 },
+  "causes": [
+    {
+      "type": "https://iana.org/assignments/http-problem-types#agent-harness-error",
+      "title": "Output Schema Violation",
+      "code": "output.schema_violation",
+      "origin": "model",
+      "model_recoverable": true,
+      "model_feedback": "Field 'price' must be a number, got string.",
+      "location": { "turn": 5, "pointer": "/items/0/price" }
+    }
+  ]
+}
+</pre><a href="#section-9-2" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="security">
+<section id="section-10">
+      <h2 id="name-security-considerations">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-10-1">Harness error objects may contain fragments of prompts, model output,
+tool arguments, or tool results. These can include sensitive data or
+secrets. Harnesses <span class="bcp14">SHOULD NOT</span> include such content in <code>detail</code>,
+<code>model_feedback</code>, <code>upstream</code>, or <code>causes</code> when the object is sent to a
+party that is not authorized to see it, and <span class="bcp14">SHOULD</span> redact credentials in
+all cases.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-10-2">The <code>model_feedback</code> member is designed to be inserted into a model's
+context. If it contains text derived from untrusted sources, such as
+tool results or remote agents, it can carry prompt-injection attacks. A
+harness that receives a harness error object from another party (for
+example, a sub-agent) <span class="bcp14">MUST NOT</span> insert that party's <code>model_feedback</code> into
+its own model's context with greater trust than the party's other
+output.<a href="#section-10-2" class="pilcrow">¶</a></p>
+<p id="section-10-3">The <code>retryable</code> and <code>model_recoverable</code> members are hints. A consumer
+that retries automatically <span class="bcp14">MUST</span> enforce its own limits on attempts,
+time, and cost, since a faulty or malicious producer could otherwise
+induce unbounded retries and resource consumption.<a href="#section-10-3" class="pilcrow">¶</a></p>
+<p id="section-10-4">Distinguishing <code>policy.*</code> errors in detail can help an attacker probe
+guardrails. Harnesses <span class="bcp14">MAY</span> report a less specific code, such as
+<code>policy.guardrail_triggered</code>, to untrusted consumers.<a href="#section-10-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-11">
+      <h2 id="name-privacy-considerations">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<p id="section-11-1">Run identifiers, tool names, and error details can reveal information
+about a user's activity. The considerations in <a href="#security" class="auto internal xref">Section 10</a> regarding
+disclosure apply. Logs containing harness error objects should be
+subject to the same retention and access policies as the conversation
+content they describe.<a href="#section-11-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana">
+<section id="section-12">
+      <h2 id="name-iana-considerations">
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<div id="http-problem-type">
+<section id="section-12.1">
+        <h3 id="name-http-problem-type">
+<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-http-problem-type" class="section-name selfRef">HTTP Problem Type</a>
+        </h3>
+<p id="section-12.1-1">IANA is requested to register the following entry in the "HTTP Problem
+Types" registry established by <span>[<a href="#RFC9457" class="cite xref">RFC9457</a>]</span>:<a href="#section-12.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-12.1-2">
+          <dt id="section-12.1-2.1">Type URI:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-2.2">
+            <p id="section-12.1-2.2.1">https://iana.org/assignments/http-problem-types#agent-harness-error<a href="#section-12.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-2.3">Title:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-2.4">
+            <p id="section-12.1-2.4.1">Agent Harness Error<a href="#section-12.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-2.5">Recommended HTTP status code:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-2.6">
+            <p id="section-12.1-2.6.1">422<a href="#section-12.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.1-2.7">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-2.8">
+            <p id="section-12.1-2.8.1">This document<a href="#section-12.1-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="agent-harness-error-codes-registry">
+<section id="section-12.2">
+        <h3 id="name-agent-harness-error-codes-r">
+<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-agent-harness-error-codes-r" class="section-name selfRef">Agent Harness Error Codes Registry</a>
+        </h3>
+<p id="section-12.2-1">IANA is requested to create a new registry titled "Agent Harness Error
+Codes". Registrations are made under the Specification Required policy
+<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>.<a href="#section-12.2-1" class="pilcrow">¶</a></p>
+<p id="section-12.2-2">Each entry contains:<a href="#section-12.2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-12.2-3">
+          <dt id="section-12.2-3.1">Code:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-3.2">
+            <p id="section-12.2-3.2.1">The error code, in the syntax defined in <a href="#members" class="auto internal xref">Section 4</a>.<a href="#section-12.2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.2-3.3">Title:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-3.4">
+            <p id="section-12.2-3.4.1">A short human-readable title.<a href="#section-12.2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.2-3.5">Default retryable:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-3.6">
+            <p id="section-12.2-3.6.1"><code>true</code> or <code>false</code>.<a href="#section-12.2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.2-3.7">Default model_recoverable:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-3.8">
+            <p id="section-12.2-3.8.1"><code>true</code> or <code>false</code>.<a href="#section-12.2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.2-3.9">Description:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-3.10">
+            <p id="section-12.2-3.10.1">A brief description of the error.<a href="#section-12.2-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-12.2-3.11">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-3.12">
+            <p id="section-12.2-3.12.1">The defining specification.<a href="#section-12.2-3.12.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-12.2-4">Designated experts should verify that a proposed code is not already
+covered by an existing code, that its category is appropriate, and that
+its defaults are justified. New categories require Standards Action.
+Codes in categories beginning with <code>x-</code> are reserved for private use and
+are not registered.<a href="#section-12.2-4" class="pilcrow">¶</a></p>
+<p id="section-12.2-5">The initial contents of the registry are the codes listed in <a href="#codes" class="auto internal xref">Section 5</a>,
+each with a Reference of this document.<a href="#section-12.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-13">
+      <h2 id="name-references">
+<a href="#section-13" class="section-number selfRef">13. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-13.1">
+        <h3 id="name-normative-references">
+<a href="#section-13.1" class="section-number selfRef">13.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8126">[RFC8126]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8259">[RFC8259]</dt>
+        <dd>
+<span class="refAuthor">Bray, T., Ed.</span>, <span class="refTitle">"The JavaScript Object Notation (JSON) Data Interchange Format"</span>, <span class="seriesInfo">STD 90</span>, <span class="seriesInfo">RFC 8259</span>, <span class="seriesInfo">DOI 10.17487/RFC8259</span>, <time datetime="2017-12" class="refDate">December 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8259">https://www.rfc-editor.org/rfc/rfc8259</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9457">[RFC9457]</dt>
+      <dd>
+<span class="refAuthor">Nottingham, M.</span>, <span class="refAuthor">Wilde, E.</span>, and <span class="refAuthor">S. Dalal</span>, <span class="refTitle">"Problem Details for HTTP APIs"</span>, <span class="seriesInfo">RFC 9457</span>, <span class="seriesInfo">DOI 10.17487/RFC9457</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9457">https://www.rfc-editor.org/rfc/rfc9457</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-13.2">
+        <h3 id="name-informative-references">
+<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="A2A">[A2A]</dt>
+        <dd>
+<span class="refAuthor">A2A Project</span>, <span class="refTitle">"Agent2Agent (A2A) Protocol Specification"</span>, <span>n.d.</span>, <span>&lt;<a href="https://a2a-protocol.org/">https://a2a-protocol.org/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="JSON-RPC">[JSON-RPC]</dt>
+        <dd>
+<span class="refAuthor">JSON-RPC Working Group</span>, <span class="refTitle">"JSON-RPC 2.0 Specification"</span>, <time datetime="2013" class="refDate">2013</time>, <span>&lt;<a href="https://www.jsonrpc.org/specification">https://www.jsonrpc.org/specification</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="MCP">[MCP]</dt>
+        <dd>
+<span class="refAuthor">Model Context Protocol</span>, <span class="refTitle">"Model Context Protocol Specification"</span>, <span>n.d.</span>, <span>&lt;<a href="https://modelcontextprotocol.io/specification">https://modelcontextprotocol.io/specification</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OTEL-GENAI">[OTEL-GENAI]</dt>
+        <dd>
+<span class="refAuthor">OpenTelemetry</span>, <span class="refTitle">"Semantic Conventions for Generative AI Systems"</span>, <span>n.d.</span>, <span>&lt;<a href="https://opentelemetry.io/docs/specs/semconv/gen-ai/">https://opentelemetry.io/docs/specs/semconv/gen-ai/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9110">[RFC9110]</dt>
+      <dd>
+<span class="refAuthor">Fielding, R., Ed.</span>, <span class="refAuthor">Nottingham, M., Ed.</span>, and <span class="refAuthor">J. Reschke, Ed.</span>, <span class="refTitle">"HTTP Semantics"</span>, <span class="seriesInfo">STD 97</span>, <span class="seriesInfo">RFC 9110</span>, <span class="seriesInfo">DOI 10.17487/RFC9110</span>, <time datetime="2022-06" class="refDate">June 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9110">https://www.rfc-editor.org/rfc/rfc9110</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="mapping-from-existing-implementations">
+<section id="appendix-A">
+      <h2 id="name-mapping-from-existing-imple">
+<a href="#name-mapping-from-existing-imple" class="section-name selfRef">Mapping from Existing Implementations</a>
+      </h2>
+<p id="appendix-A-1">This appendix is informative. The following shows how common
+provider-specific signals could map to harness error codes. Names are
+given as examples and may change in the cited implementations.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<span id="name-example-mappings"></span><table class="center" id="table-8">
+        <caption>
+<a href="#table-8" class="selfRef">Table 8</a>:
+<a href="#name-example-mappings" class="selfRef">Example mappings</a>
+        </caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Signal</th>
+            <th class="text-left" rowspan="1" colspan="1">Harness error code</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Model API stop reason indicating an output token limit (e.g. <code>max_tokens</code>, <code>length</code>)</td>
+            <td class="text-left" rowspan="1" colspan="1">output.truncated</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Model API stop reason indicating refusal</td>
+            <td class="text-left" rowspan="1" colspan="1">policy.model_refusal</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Model API stop reason indicating a content filter</td>
+            <td class="text-left" rowspan="1" colspan="1">policy.content_filtered</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Model API stop reason indicating context window overflow</td>
+            <td class="text-left" rowspan="1" colspan="1">context.window_exceeded</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">HTTP 429 from a model API</td>
+            <td class="text-left" rowspan="1" colspan="1">upstream.rate_limited</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">HTTP 529 or 503 indicating overload</td>
+            <td class="text-left" rowspan="1" colspan="1">upstream.overloaded</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Framework "max turns exceeded" exception</td>
+            <td class="text-left" rowspan="1" colspan="1">loop.max_turns_exceeded</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Framework output-parser exception</td>
+            <td class="text-left" rowspan="1" colspan="1">output.malformed or output.schema_violation</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Framework "retries exhausted" exception for structured output</td>
+            <td class="text-left" rowspan="1" colspan="1">output.retries_exhausted</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Framework guardrail tripwire</td>
+            <td class="text-left" rowspan="1" colspan="1">policy.guardrail_triggered</td>
+          </tr>
+        </tbody>
+      </table>
+</section>
+</div>
+<div id="open-issues">
+<section id="appendix-B">
+      <h2 id="name-open-issues">
+<a href="#name-open-issues" class="section-name selfRef">Open Issues</a>
+      </h2>
+<p id="appendix-B-1">This section is to be removed before publication.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-B-2.1">
+          <p id="appendix-B-2.1.1">Should the problem type be split into one type URI per category,
+instead of one type with a <code>code</code> member?<a href="#appendix-B-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-2.2">
+          <p id="appendix-B-2.2.1">Is a separate IANA registry justified, or should codes be registered
+as individual problem types?<a href="#appendix-B-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-2.3">
+          <p id="appendix-B-2.3.1">Should streaming partial results that accompany an error be in scope?<a href="#appendix-B-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-2.4">
+          <p id="appendix-B-2.4.1">Should there be a code for model output that is well-formed but
+semantically invalid as judged by a validator (e.g. <code>output.rejected</code>)?<a href="#appendix-B-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-2.5">
+          <p id="appendix-B-2.5.1">Relationship to work on agent protocols elsewhere in the IETF.<a href="#appendix-B-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-2.6">
+          <p id="appendix-B-2.6.1">MCP <code>_meta</code> key: <code>org.agenterrors/harness-error</code> is controlled by the
+editors. If MCP adopts this mechanism (e.g. via an MCP SEP), the key
+could move to an MCP-reserved prefix.<a href="#appendix-B-2.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-2.7">
+          <p id="appendix-B-2.7.1">Should the pre-registration problem type URI
+(<code>https://agenterrors.org/problems/harness-error</code>) remain valid
+permanently, or be retired after IANA registration?<a href="#appendix-B-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-2.8">
+          <p id="appendix-B-2.8.1">The MCP and A2A error codes and mechanisms referenced here should be
+re-verified against the latest versions of those specifications
+before each draft revision.<a href="#appendix-B-2.8.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="mcp-and-a2a-examples">
+<section id="appendix-C">
+      <h2 id="name-mcp-and-a2a-examples">
+<a href="#name-mcp-and-a2a-examples" class="section-name selfRef">MCP and A2A Examples</a>
+      </h2>
+<p id="appendix-C-1">An MCP tool execution error. The text content is what the model sees;
+the <code>_meta</code> entry is for the harness.<a href="#appendix-C-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C-2">
+<pre>
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": {
+    "isError": true,
+    "content": [
+      { "type": "text",
+        "text": "Argument 'date' must be YYYY-MM-DD, got '11/04'." }
+    ],
+    "_meta": {
+      "org.agenterrors/harness-error": {
+        "type": "https://iana.org/assignments/http-problem-types#agent-harness-error",
+        "title": "Invalid Tool Arguments",
+        "code": "output.invalid_tool_arguments",
+        "origin": "model",
+        "model_recoverable": true,
+        "model_feedback": "Argument 'date' must be YYYY-MM-DD, got '11/04'.",
+        "location": { "tool_name": "book_meeting", "pointer": "/date" }
+      }
+    }
+  }
+}
+</pre><a href="#appendix-C-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C-3">An A2A task that failed because the remote agent hit its turn limit:<a href="#appendix-C-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C-4">
+<pre>
+{
+  "id": "task-123",
+  "status": {
+    "state": "failed",
+    "message": {
+      "role": "agent",
+      "parts": [
+        { "kind": "text",
+          "text": "Stopped after reaching the 50-turn limit." },
+        { "kind": "data",
+          "data": {
+            "type": "https://iana.org/assignments/http-problem-types#agent-harness-error",
+            "title": "Maximum Turns Exceeded",
+            "code": "loop.max_turns_exceeded",
+            "origin": "harness",
+            "retryable": false,
+            "model_recoverable": false,
+            "limit": { "name": "turns", "value": 50, "observed": 50 }
+          } }
+      ]
+    }
+  }
+}
+</pre><a href="#appendix-C-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C-5">The delegating harness reports this to its own caller as
+<code>upstream.agent_failed</code> with the object above in <code>causes</code>.<a href="#appendix-C-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-D">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-D-1">TODO.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-E">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Arata Ouchi</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:ouchiarata@philtz.com" class="email">ouchiarata@philtz.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
