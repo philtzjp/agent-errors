@@ -1,0 +1,50 @@
+name: "Deploy Site"
+
+# Serves agenterrors.org from the Worker philtzjp-agenterrors-shared.
+# The editor's copy built by "Update Editor's Copy" on gh-pages is copied under /draft/.
+on:
+  push:
+    branches: [main]
+    paths:
+    - site/**
+    - .github/workflows/site.yml
+  workflow_run:
+    workflows: ["Update Editor's Copy"]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: "Deploy Site"
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: cloudflare
+    steps:
+    - name: "Checkout"
+      uses: actions/checkout@v6
+      with:
+        ref: main
+
+    - name: "Checkout Editor's Copy"
+      uses: actions/checkout@v6
+      with:
+        ref: gh-pages
+        path: gh-pages
+
+    - name: "Copy Editor's Copy"
+      run: cp gh-pages/draft-*.html gh-pages/draft-*.txt site/public/draft/
+
+    - name: "Deploy"
+      working-directory: site
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      run: npx --yes wrangler@4 deploy

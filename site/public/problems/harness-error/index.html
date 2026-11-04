@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Problem type: harness-error — Agent Errors</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+<header><a class="home" href="/">Agent Errors</a></header>
+
+<h1>Problem type <code>harness-error</code></h1>
+
+<p>This URI identifies a Problem Details (<a href="https://www.rfc-editor.org/rfc/rfc9457">RFC 9457</a>) object that describes an error detected by an AI agent harness:</p>
+<pre><code>https://agenterrors.org/problems/harness-error</code></pre>
+
+<p>Implementations may use this URI until the problem type is registered with IANA as <code>https://iana.org/assignments/http-problem-types#agent-harness-error</code>. Consumers must treat the two URIs as equivalent.</p>
+
+<p class="note">This page summarizes the <a href="/draft/draft-ouchi-agent-harness-errors.html">editor's copy of the draft</a>. If they differ, the draft is authoritative.</p>
+
+<h2>Required member</h2>
+<p><code>code</code> is a registered error code of the form <code>&lt;category&gt;.&lt;name&gt;</code>, for example <code>output.schema_violation</code>. Consumers decide what kind of error occurred from <code>code</code>, never from <code>title</code> or <code>detail</code>.</p>
+
+<h2>Extension members</h2>
+<table>
+<tr><th>Member</th><th>Meaning</th></tr>
+<tr><td><code>origin</code></td><td>Where the error originated: <code>model</code>, <code>harness</code>, <code>tool</code>, <code>upstream</code>, or <code>user</code>.</td></tr>
+<tr><td><code>retryable</code></td><td>Whether repeating the same operation unchanged may succeed.</td></tr>
+<tr><td><code>model_recoverable</code></td><td>Whether the model is likely to correct the error if it is told about it.</td></tr>
+<tr><td><code>model_feedback</code></td><td>Text intended for the model, distinct from <code>detail</code>, which is for humans.</td></tr>
+<tr><td><code>retry_after</code></td><td>Seconds after which a retry is advised.</td></tr>
+<tr><td><code>attempts</code>, <code>max_attempts</code></td><td>Attempts already made, and the configured maximum.</td></tr>
+<tr><td><code>limit</code></td><td>The exceeded limit: <code>name</code>, <code>value</code>, <code>observed</code>, <code>unit</code>.</td></tr>
+<tr><td><code>location</code></td><td>Where in the run: <code>run_id</code>, <code>turn</code>, <code>tool_name</code>, <code>tool_call_id</code>, <code>pointer</code>.</td></tr>
+<tr><td><code>upstream</code></td><td>Raw information from an upstream component, kept for diagnosis.</td></tr>
+<tr><td><code>causes</code></td><td>Problem details objects that caused this one, most recent first.</td></tr>
+</table>
+
+<h2>Code categories</h2>
+<table>
+<tr><th>Category</th><th>Description</th></tr>
+<tr><td><code>output</code></td><td>Model output could not be accepted by the harness.</td></tr>
+<tr><td><code>loop</code></td><td>A limit on the agent loop was reached, or the loop is not progressing.</td></tr>
+<tr><td><code>context</code></td><td>Context assembly or management failed.</td></tr>
+<tr><td><code>tool</code></td><td>Tool resolution or execution failed.</td></tr>
+<tr><td><code>policy</code></td><td>A policy, guardrail, refusal, or human decision stopped the operation.</td></tr>
+<tr><td><code>upstream</code></td><td>A remote dependency, typically the model API, failed.</td></tr>
+<tr><td><code>harness</code></td><td>The harness failed for another reason.</td></tr>
+</table>
+<p>The full list of codes, with default values for <code>retryable</code> and <code>model_recoverable</code>, is in the draft.</p>
+
+<h2>Example</h2>
+<pre><code>HTTP/1.1 422 Unprocessable Content
+Content-Type: application/problem+json
+
+{
+  "type": "https://agenterrors.org/problems/harness-error",
+  "title": "Output Retries Exhausted",
+  "code": "output.retries_exhausted",
+  "origin": "harness",
+  "retryable": false,
+  "attempts": 3,
+  "max_attempts": 3,
+  "causes": [
+    {
+      "type": "https://agenterrors.org/problems/harness-error",
+      "title": "Output Schema Violation",
+      "code": "output.schema_violation",
+      "origin": "model",
+      "model_feedback": "Field 'price' must be a number, got string.",
+      "location": { "turn": 5, "pointer": "/items/0/price" }
+    }
+  ]
+}</code></pre>
+
+<h2>Other bindings</h2>
+<ul>
+<li>MCP: the object goes in <code>_meta</code> under the key <code>org.agenterrors/harness-error</code>, or in JSON-RPC <code>error.data</code>.</li>
+<li>A2A: see the <a href="/ext/a2a/v1">A2A extension</a>.</li>
+</ul>
+
+<footer><a href="https://github.com/philtzjp/agent-errors">github.com/philtzjp/agent-errors</a></footer>
+</main>
+</body>
+</html>

@@ -22,3 +22,6 @@ draft-ouchi-agent-harness-errors.xml
 package-lock.json
 report.xml
 !requirements.txt
+!/site/public/**/*.html
+/site/public/draft/draft-*
+/site/.wrangler/

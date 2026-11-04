@@ -1,0 +1,17 @@
+// Static-assets-only Worker that serves agenterrors.org.
+// The Worker, the zone, and the deploy token live in the same Cloudflare account,
+// so wrangler attaches the custom domain on deploy.
+{
+    "$schema": "https://unpkg.com/wrangler/config-schema.json",
+    "name": "philtzjp-agenterrors-shared",
+    "compatibility_date": "2026-11-01",
+    "workers_dev": false,
+    "routes": [
+        { "pattern": "agenterrors.org", "custom_domain": true },
+    ],
+    "assets": {
+        "directory": "./public",
+        "html_handling": "auto-trailing-slash",
+        "not_found_handling": "404-page",
+    },
+}
