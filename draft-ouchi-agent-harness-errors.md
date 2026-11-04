@@ -7,7 +7,7 @@ submissiontype: IETF
 number:
 date:
 v: 3
-area: "Applications and Real-Time"
+# area: "Applications and Real-Time"
 keyword:
  - AI agent
  - LLM
