@@ -28,8 +28,17 @@ jobs:
     - name: "Checkout"
       uses: actions/checkout@v6
 
+    - name: "Configure Git Identity"
+      # i-d-template commits as "ID Bot" unless a global git identity exists; provide github-actions[bot] instead
+      run: |
+        git config --file .git/ci-gitconfig user.name "github-actions[bot]"
+        git config --file .git/ci-gitconfig user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --file .git/ci-gitconfig --add safe.directory "*"
+
     - name: "Update Generated Files"
       uses: martinthomson/i-d-template@v1
+      env:
+        GIT_CONFIG_GLOBAL: /github/workspace/.git/ci-gitconfig
       with:
         make: update-files
         token: ${{ github.token }}

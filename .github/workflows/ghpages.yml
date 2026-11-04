@@ -25,6 +25,13 @@ jobs:
     - name: "Checkout"
       uses: actions/checkout@v6
 
+    - name: "Configure Git Identity"
+      # i-d-template commits as "ID Bot" unless a global git identity exists; provide github-actions[bot] instead
+      run: |
+        git config --file .git/ci-gitconfig user.name "github-actions[bot]"
+        git config --file .git/ci-gitconfig user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --file .git/ci-gitconfig --add safe.directory "*"
+
     - name: "Setup"
       id: setup
       run: date -u "+date=%FT%T" >>"$GITHUB_OUTPUT"
@@ -44,6 +51,8 @@ jobs:
     - name: "Build Drafts"
       id: build
       uses: martinthomson/i-d-template@v1
+      env:
+        GIT_CONFIG_GLOBAL: /github/workspace/.git/ci-gitconfig
       with:
         token: ${{ github.token }}
 
@@ -51,6 +60,8 @@ jobs:
       id: fix-lint
       if: always() && steps.build.outcome == 'failure'
       uses: martinthomson/i-d-template@v1
+      env:
+        GIT_CONFIG_GLOBAL: /github/workspace/.git/ci-gitconfig
       with:
         make: fix-lint
 
@@ -66,6 +77,8 @@ jobs:
 
     - name: "Update GitHub Pages"
       uses: martinthomson/i-d-template@v1
+      env:
+        GIT_CONFIG_GLOBAL: /github/workspace/.git/ci-gitconfig
       if: ${{ github.event_name == 'push' }}
       with:
         make: gh-pages
