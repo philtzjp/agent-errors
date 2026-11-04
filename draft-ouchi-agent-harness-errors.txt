@@ -24,6 +24,13 @@ Abstract
    whether it can be repaired by the model itself.  It also establishes
    an IANA registry of harness error codes.
 
+Discussion Venues
+
+   This note is to be removed before publishing as an RFC.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/philtzjp/agent-errors.
+
 Status of This Memo
 
    This Internet-Draft is submitted in full conformance with the
