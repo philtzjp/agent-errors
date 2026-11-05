@@ -1,0 +1,111 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2026-11-05T00:12:19.645585+00:00",
+  "repo": "philtzjp/agent-errors",
+  "labels": [
+    {
+      "name": "legal-check",
+      "description": "\u6cd5\u52d9\u306e\u78ba\u8a8d\u304c\u8981\u308b",
+      "color": "B60205"
+    },
+    {
+      "name": "human-check",
+      "description": "\u4eba\u306e\u78ba\u8a8d\u304c\u8981\u308b\u3002AI \u3060\u3051\u3067\u9032\u3081\u306a\u3044",
+      "color": "FBCA04"
+    },
+    {
+      "name": "merge",
+      "description": "philtz-organizer-bot \u304c squash \u3067\u30de\u30fc\u30b8\u3059\u308b",
+      "color": "0E8A16"
+    },
+    {
+      "name": "urgent",
+      "description": "\u3059\u3050\u306b\u5bfe\u5fdc\u3059\u308b",
+      "color": "D93F0B"
+    }
+  ],
+  "issues": [
+    {
+      "number": 1,
+      "id": "I_kwDOVi6D1c8AAAABcgJtiA",
+      "title": "feat(site): agenterrors.org \u306e\u30da\u30fc\u30b8\u3092 Worker \u3067\u914d\u308b",
+      "url": "https://github.com/philtzjp/agent-errors/issues/1",
+      "state": "CLOSED",
+      "author": "artouc",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "\u2733\ufe0e Anthropic Claude Opus 5.5\n\n## \u80cc\u666f\n\n- \u30c9\u30e9\u30d5\u30c8\u306f `https://agenterrors.org/problems/harness-error` \u3092 IANA \u306b\u767b\u9332\u3059\u308b\u307e\u3067\u306e problem type \u306e URI \u306b\u3001`https://agenterrors.org/ext/a2a/v1` \u3092 A2A \u306e extension \u306e URI \u306b\u4f7f\u3046\u3002\u3069\u3061\u3089\u3082\u958b\u304f\u3068\u8aac\u660e\u304c\u8aad\u3081\u308b\u5fc5\u8981\u304c\u3042\u308b\n- org \u304c GitHub Pages \u306e\u4f5c\u6210\u3092\u6b62\u3081\u3066\u3044\u308b\u306e\u3067\u3001i-d-template \u304c gh-pages \u306b\u4f5c\u308b\u30a8\u30c7\u30a3\u30bf\u7248\u3092\u516c\u958b\u3067\u304d\u306a\u3044\n- agenterrors.org \u306f owner \u306e Cloudflare \u306e\u30a2\u30ab\u30a6\u30f3\u30c8 Original SIN Architecture \u306b\u3042\u308a\u3001\u53d6\u5f97\u304b\u3089 10 \u65e5\u306f Philtz \u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u306b\u79fb\u305b\u306a\u3044\u3002\u305d\u308c\u307e\u3067\u306f Worker \u3082\u305d\u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u306b\u30c7\u30d7\u30ed\u30a4\u3059\u308b\n\n## \u4f5c\u696d\u7bc4\u56f2\n\n- `site/` \u306b\u3001\u30c8\u30c3\u30d7\u306e\u30da\u30fc\u30b8\u3001problem type \u306e\u8aac\u660e\u306e\u30da\u30fc\u30b8\u3001A2A \u306e extension \u306e\u8aac\u660e\u306e\u30da\u30fc\u30b8\u3092\u7f6e\u304f\n- `site/wrangler.jsonc` \u3067\u3001Workers Static Assets \u3060\u3051\u306e Worker `philtzjp-agenterrors-shared` \u3092\u5b9a\u7fa9\u3059\u308b\n- main \u3078\u306e push \u3068\u3001\u30a8\u30c7\u30a3\u30bf\u7248\u306e\u66f4\u65b0\u306e\u5b8c\u4e86\u306e\u305f\u3073\u306b\u3001gh-pages \u306e\u30a8\u30c7\u30a3\u30bf\u7248\u3092 `/draft/` \u306b\u91cd\u306d\u3066 Worker \u306b\u30c7\u30d7\u30ed\u30a4\u3059\u308b workflow \u3092\u8ffd\u52a0\u3059\u308b\n- agenterrors.org \u306f wrangler \u306e `custom_domain` \u3067 Worker \u306b\u5272\u308a\u5f53\u3066\u308b\n\n## \u53d7\u3051\u5165\u308c\u6761\u4ef6\n\n- [ ] main \u3067 workflow \u304c\u901a\u308a\u3001Worker `philtzjp-agenterrors-shared` \u304c\u30c7\u30d7\u30ed\u30a4\u3055\u308c\u308b\n- [ ] `/`\u3001`/draft/`\u3001`/problems/harness-error`\u3001`/ext/a2a/v1` \u304c agenterrors.org \u3067\u958b\u3051\u308b\n",
+      "createdAt": "2026-11-04T17:16:57Z",
+      "updatedAt": "2026-11-04T18:21:26Z",
+      "closedAt": "2026-11-04T18:21:26Z",
+      "comments": [
+        {
+          "author": "artouc",
+          "authorAssociation": "MEMBER",
+          "body": "\u2733\ufe0e Anthropic Claude Opus 5.5\n\n## \u80cc\u666f\n\n#2 \u3068 #3 \u3092\u30de\u30fc\u30b8\u3057\u3001Worker `philtzjp-agenterrors-shared` \u3092 owner \u306e Cloudflare \u306e\u30a2\u30ab\u30a6\u30f3\u30c8 Original SIN Architecture \u306b\u30c7\u30d7\u30ed\u30a4\u3057\u305f\u3002agenterrors.org \u306f wrangler \u306e `custom_domain` \u3067\u5272\u308a\u5f53\u3066\u305f\u3002\n\n## \u4f5c\u696d\u7bc4\u56f2\n\n- \u30c7\u30d7\u30ed\u30a4\u306e token \u306f Account API Token \u3067\u3001Workers \u306e\u66f8\u304d\u8fbc\u307f\u3068\u3001agenterrors.org \u306e\u30be\u30fc\u30f3\u306e\u6a29\u9650\u3092\u4ed8\u3051\u305f\u3002\u5024\u306f Environment `cloudflare` \u306e secret \u306b\u3042\u308b\n- #3 \u3067 `html_handling` \u3092 `drop-trailing-slash` \u306b\u3057\u3001\u4ed5\u69d8\u306e URI \u304c\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u3055\u308c\u306a\u3044\u3088\u3046\u306b\u3057\u305f\n\n## \u53d7\u3051\u5165\u308c\u6761\u4ef6\n\n- [x] main \u3067 workflow \u304c\u901a\u308a\u3001Worker `philtzjp-agenterrors-shared` \u304c\u30c7\u30d7\u30ed\u30a4\u3055\u308c\u308b\u3002run 41884007899 \u3068 #3 \u306e\u30de\u30fc\u30b8\u5f8c\u306e run \u3067\u6210\u529f\u3057\u305f\n- [x] `/`\u3001`/draft/`\u3001`/problems/harness-error`\u3001`/ext/a2a/v1` \u304c agenterrors.org \u3067\u958b\u3051\u308b\u3002\u3069\u308c\u3082 200 \u3092\u8fd4\u3057\u305f\u3002`/draft/` \u306f `/draft` \u306b\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u3055\u308c\u3001`/draft` \u304c 200 \u3092\u8fd4\u3059\n\n## \u5099\u8003\n\n- http \u304b\u3089 https \u3078\u306e\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u306f\u307e\u3060\u306a\u3044\u3002\u30be\u30fc\u30f3\u306e Always Use HTTPS \u306f\u3001\u3053\u306e token \u306e\u6a29\u9650\u306e\u5916\u306b\u3042\u308b\n- agenterrors.org \u3092 Philtz \u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u306b\u79fb\u3057\u305f\u3089\u3001philtzjp/pulumi#422 \u3067\u5ba3\u8a00\u3057\u76f4\u3059",
+          "createdAt": "2026-11-04T18:21:26Z",
+          "updatedAt": "2026-11-04T18:21:26Z"
+        }
+      ]
+    }
+  ],
+  "pulls": [
+    {
+      "number": 2,
+      "id": "PR_kwDOVi6D1c8AAAABM3j1eQ",
+      "title": "feat(repo): agenterrors.org \u306e\u30da\u30fc\u30b8\u3068 Worker \u3078\u306e\u30c7\u30d7\u30ed\u30a4\u3092\u8ffd\u52a0\u3059\u308b",
+      "url": "https://github.com/philtzjp/agent-errors/pull/2",
+      "state": "MERGED",
+      "author": "artouc",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "\u2733\ufe0e Anthropic Claude Opus 5.5\n\n## \u80cc\u666f\n\n- #1 \u306e\u4f5c\u696d\u3092\u884c\u3046\u3002\u30c9\u30e9\u30d5\u30c8\u304c\u4f7f\u3046 `https://agenterrors.org/problems/harness-error` \u3068 `https://agenterrors.org/ext/a2a/v1` \u3092\u3001\u958b\u304f\u3068\u8aac\u660e\u304c\u8aad\u3081\u308b\u3088\u3046\u306b\u3059\u308b\n- org \u304c GitHub Pages \u306e\u4f5c\u6210\u3092\u6b62\u3081\u3066\u3044\u308b\u306e\u3067\u3001\u30a8\u30c7\u30a3\u30bf\u7248\u3082 agenterrors.org \u3067\u516c\u958b\u3059\u308b\n- agenterrors.org \u306f owner \u306e Cloudflare \u306e\u30a2\u30ab\u30a6\u30f3\u30c8 Original SIN Architecture \u306b\u3042\u308a\u3001\u53d6\u5f97\u304b\u3089 10 \u65e5\u306f Philtz \u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u306b\u79fb\u305b\u306a\u3044\u3002\u305d\u308c\u307e\u3067\u306f Worker \u3082\u305d\u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u306b\u30c7\u30d7\u30ed\u30a4\u3059\u308b\u3002philtzjp/pulumi#424 \u3067\u3001Philtz \u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u3078\u306e\u5ba3\u8a00\u306f\u53d6\u308a\u6d88\u3057\u305f\n\n## \u4f5c\u696d\u7bc4\u56f2\n\n- `site/public` \u306b\u3001\u30c8\u30c3\u30d7\u306e\u30da\u30fc\u30b8\u3001problem type \u306e\u8aac\u660e\u306e\u30da\u30fc\u30b8\u3001A2A \u306e extension \u306e\u8aac\u660e\u306e\u30da\u30fc\u30b8\u3001\u30a8\u30c7\u30a3\u30bf\u7248\u306e\u5165\u53e3\u306e\u30da\u30fc\u30b8\u3001404 \u306e\u30da\u30fc\u30b8\u3092\u7f6e\u3044\u305f\u3002\u8aac\u660e\u306e\u30da\u30fc\u30b8\u306f\u30c9\u30e9\u30d5\u30c8\u306e\u8981\u7d04\u3067\u3001\u6b63\u672c\u306f\u30c9\u30e9\u30d5\u30c8\u3067\u3042\u308b\u3068\u66f8\u3044\u305f\n- `site/wrangler.jsonc` \u3067\u3001Workers Static Assets \u3060\u3051\u306e Worker `philtzjp-agenterrors-shared` \u3092\u5b9a\u7fa9\u3057\u305f\u3002`workers_dev` \u306f\u5207\u308a\u3001`routes` \u306e `custom_domain` \u3067 agenterrors.org \u3092\u5272\u308a\u5f53\u3066\u308b\n- `.github/workflows/site.yml` \u3092\u8ffd\u52a0\u3057\u305f\u3002main \u3078\u306e push \u3068\u3001\u30a8\u30c7\u30a3\u30bf\u7248\u306e\u66f4\u65b0\u306e\u6210\u529f\u306e\u305f\u3073\u306b\u3001gh-pages \u306e\u30c9\u30e9\u30d5\u30c8\u306e HTML \u3068 text \u3092 `/draft/` \u306b\u5199\u3057\u3066\u30c7\u30d7\u30ed\u30a4\u3059\u308b\u3002Environment `cloudflare` \u306e secret `CLOUDFLARE_API_TOKEN` \u3068\u5909\u6570 `CLOUDFLARE_ACCOUNT_ID` \u3092\u4f7f\u3046\n- i-d-template \u306e `.gitignore` \u304c `*.html` \u3092\u7121\u8996\u3059\u308b\u306e\u3067\u3001`site/public` \u306e HTML \u3060\u3051\u3092\u623b\u3057\u3001CI \u304c\u5199\u3059\u30c9\u30e9\u30d5\u30c8\u3068 wrangler \u306e\u4f5c\u696d\u30c7\u30a3\u30ec\u30af\u30c8\u30ea\u3092\u7121\u8996\u3057\u305f\n- \u624b\u5143\u3067 `npx wrangler@4 deploy --dry-run` \u304c\u901a\u308b\u3053\u3068\u3092\u78ba\u8a8d\u3057\u305f\n\n## \u53d7\u3051\u5165\u308c\u6761\u4ef6\n\n- [ ] Environment `cloudflare` \u306b\u3001Original SIN Architecture \u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u306e token \u3068 account id \u304c\u5165\u3063\u3066\u3044\u308b\n- [ ] main \u3067 workflow \u304c\u901a\u308a\u3001Worker `philtzjp-agenterrors-shared` \u304c\u30c7\u30d7\u30ed\u30a4\u3055\u308c\u308b\n- [ ] `/`\u3001`/draft/`\u3001`/problems/harness-error`\u3001`/ext/a2a/v1` \u304c agenterrors.org \u3067\u958b\u3051\u308b\n\n## \u5f71\u97ff\u7bc4\u56f2\u30fb\u6b8b\u30ea\u30b9\u30af\n\n- Environment `cloudflare` \u306e secret \u3068\u5909\u6570\u306f\u3001philtzjp/pulumi \u306e\u7ba1\u7406\u306e\u5916\u3067 owner \u304c\u624b\u3067\u5165\u308c\u308b\u3002Philtz \u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u306b\u79fb\u3059\u3068\u304d\u306f\u3001philtzjp/pulumi \u306e\u5ba3\u8a00\u306b\u7f6e\u304d\u63db\u3048\u308b\n- token \u306b\u306f Workers \u306e\u30b9\u30af\u30ea\u30d7\u30c8\u306e\u66f8\u304d\u8fbc\u307f\u3068\u3001agenterrors.org \u306e Workers \u306e\u30eb\u30fc\u30c8\u306e\u66f8\u304d\u8fbc\u307f\u304c\u8981\u308b\u3002Cloudflare \u306e Edit Cloudflare Workers \u306e\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u3092\u3001\u3053\u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u3068 agenterrors.org \u306b\u7d5e\u3063\u3066\u4f7f\u3046\n- workflow \u306f main \u3068\u3001main \u3067\u52d5\u3044\u305f\u30a8\u30c7\u30a3\u30bf\u7248\u306e\u66f4\u65b0\u304b\u3089\u3060\u3051\u52d5\u304f\u3002fork \u304b\u3089\u306e PR \u3067\u306f\u52d5\u304b\u306a\u3044\n- \u30da\u30fc\u30b8\u306e\u5185\u5bb9\u306f\u30c9\u30e9\u30d5\u30c8\u306e\u4eca\u306e\u7248\u306e\u8981\u7d04\u306a\u306e\u3067\u3001\u30c9\u30e9\u30d5\u30c8\u3092\u5909\u3048\u305f\u3068\u304d\u306f\u30da\u30fc\u30b8\u3082\u76f4\u3059\u5fc5\u8981\u304c\u3042\u308b\n",
+      "createdAt": "2026-11-04T17:18:47Z",
+      "updatedAt": "2026-11-04T18:07:47Z",
+      "baseRepository": "philtzjp/agent-errors",
+      "baseRefName": "main",
+      "baseRefOid": "630dfb7eabf3b8736fc4b92cd33b6ec8e836c652",
+      "headRepository": "philtzjp/agent-errors",
+      "headRefName": "feat/1-site",
+      "headRefOid": "bdde3aa969b89815235901546f6631a7a639eb7b",
+      "closedAt": "2026-11-04T18:07:44Z",
+      "mergedAt": "2026-11-04T18:07:44Z",
+      "mergedBy": "philtz-organizer-bot",
+      "mergeCommit": {
+        "oid": "6f17100d6effa34c026e4697f3cf9fb746230970"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 3,
+      "id": "PR_kwDOVi6D1c8AAAABM4WGdw",
+      "title": "fix(site): \u4ed5\u69d8\u306e URI \u3092\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u305b\u305a\u306b\u8fd4\u3059",
+      "url": "https://github.com/philtzjp/agent-errors/pull/3",
+      "state": "MERGED",
+      "author": "artouc",
+      "authorAssociation": "MEMBER",
+      "assignees": [],
+      "labels": [],
+      "body": "\u2733\ufe0e Anthropic Claude Opus 5.5\n\n## \u80cc\u666f\n\n- #2 \u306e\u30c7\u30d7\u30ed\u30a4\u306e\u3042\u3068\u3067\u3001\u30c9\u30e9\u30d5\u30c8\u304c\u4f7f\u3046 `https://agenterrors.org/problems/harness-error` \u3068 `https://agenterrors.org/ext/a2a/v1` \u304c\u3001\u672b\u5c3e\u306b\u30b9\u30e9\u30c3\u30b7\u30e5\u3092\u4ed8\u3051\u305f URL \u3078 307 \u3067\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u3055\u308c\u305f\n- problem type \u3068 extension \u306e URI \u306f\u8b58\u5225\u5b50\u306a\u306e\u3067\u3001\u66f8\u3044\u305f\u3068\u304a\u308a\u306e URL \u3067 200 \u3092\u8fd4\u3059\u307b\u3046\u304c\u3088\u3044\n\n## \u4f5c\u696d\u7bc4\u56f2\n\n- `site/wrangler.jsonc` \u306e `html_handling` \u3092 `auto-trailing-slash` \u304b\u3089 `drop-trailing-slash` \u306b\u5909\u3048\u305f\u3002`/problems/harness-error/index.html` \u304c `/problems/harness-error` \u3067\u8fd4\u308b\n- \u30da\u30fc\u30b8\u306e\u4e2d\u306e\u30a8\u30c7\u30a3\u30bf\u7248\u3078\u306e\u30ea\u30f3\u30af\u304b\u3089 `.html` \u3092\u5916\u3057\u3001\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u304c\u8d77\u304d\u306a\u3044\u5f62\u306b\u3057\u305f\n- \u624b\u5143\u3067 `npx wrangler@4 deploy --dry-run` \u304c\u901a\u308b\u3053\u3068\u3092\u78ba\u8a8d\u3057\u305f\n\n## \u53d7\u3051\u5165\u308c\u6761\u4ef6\n\n- [ ] `https://agenterrors.org/problems/harness-error` \u3068 `https://agenterrors.org/ext/a2a/v1` \u304c\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u306a\u3057\u3067 200 \u3092\u8fd4\u3059\n- [ ] `/` \u3068\u30a8\u30c7\u30a3\u30bf\u7248\u306e\u30da\u30fc\u30b8\u304c\u958b\u3051\u308b\n\n## \u5f71\u97ff\u7bc4\u56f2\u30fb\u6b8b\u30ea\u30b9\u30af\n\n- `/draft/` \u3068 `/problems/harness-error/` \u306e\u3088\u3046\u306b\u672b\u5c3e\u306b\u30b9\u30e9\u30c3\u30b7\u30e5\u3092\u4ed8\u3051\u305f URL \u306f\u3001\u30b9\u30e9\u30c3\u30b7\u30e5\u306e\u306a\u3044 URL \u306b\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u3055\u308c\u308b\u3088\u3046\u306b\u306a\u308b\n",
+      "createdAt": "2026-11-04T18:19:47Z",
+      "updatedAt": "2026-11-04T18:20:29Z",
+      "baseRepository": "philtzjp/agent-errors",
+      "baseRefName": "main",
+      "baseRefOid": "6f17100d6effa34c026e4697f3cf9fb746230970",
+      "headRepository": "philtzjp/agent-errors",
+      "headRefName": "fix/site-trailing-slash",
+      "headRefOid": "0a94ed21e58cdd7722a85b04e2838b6d6f1aad0d",
+      "closedAt": "2026-11-04T18:20:26Z",
+      "mergedAt": "2026-11-04T18:20:26Z",
+      "mergedBy": "philtz-organizer-bot",
+      "mergeCommit": {
+        "oid": "e6ca4d5e8cf714f97ef89394c3fa6218ab8ee7dd"
+      },
+      "comments": [],
+      "reviews": []
+    }
+  ]
+}
